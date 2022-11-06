@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResouce;
 use App\Models\Product;
+use App\Repository\ProductRepository;
 use Illuminate\Http\Request;
 
 
@@ -15,11 +16,20 @@ class ProductController extends Controller
     {
         $this->product = $product;
     }
-    public function index()
+    public function index(Request $request)
     {
-        $products = $this->product->paginate(1);
+        $products = $this->product;
+        $productRepository = new ProductRepository($products);
+        if ($request->has('coditions')) {
+            $productRepository->selectCoditions($request->get('coditions'));
+        }
+
+        if ($request->has('fields')) {
+            $productRepository->selectFilter($request->get('fields'));
+        }
+
         // return response()->json($products);
-        return new ProductCollection($products);
+        return new ProductCollection($productRepository->getResult()->paginate(2));
     }
 
     public function show($id)
